@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    tools:context="com.embedonix.chronometer.MainActivity">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="12"
+        android:background="#000000"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="00:00:00:000"
+            android:id="@+id/tv_timer"
+            android:layout_gravity="center_horizontal"
+            android:textSize="48dp"
+            android:textAlignment="center"
+            android:textColor="#0dff00"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="6"
+        android:background="#000000">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <EditText
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:id="@+id/et_laps"
+                android:layout_gravity="center_horizontal"
+                android:textColor="#ff0000"/>
+
+        </ScrollView>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="12"
+        android:background="#1f1d1d">
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:text="START"
+            android:id="@+id/btn_start"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:textSize="18dp"
+            android:typeface="monospace"/>
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:text="LAP"
+            android:id="@+id/btn_lap"
+            android:layout_weight="1"
+            android:textSize="18dp"/>
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:text="STOP"
+            android:id="@+id/btn_stop"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:textSize="18dp"/>
+    </LinearLayout>
+</LinearLayout>
