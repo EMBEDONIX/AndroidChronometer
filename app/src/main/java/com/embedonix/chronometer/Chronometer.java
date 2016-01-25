@@ -2,10 +2,6 @@ package com.embedonix.chronometer;
 
 import android.content.Context;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
-
 /**
  * A simple Runnable class to generate time difference since a starting time in milliseconds
  *
@@ -13,6 +9,10 @@ import java.util.TimeZone;
  * Created by saeid on 24.01.16.
  */
 public class Chronometer implements Runnable {
+
+    //Some constants for milliseconds to hours, minutes, and seconds conversion
+    public static final long MILLIS_TO_MINUTES = 60000;
+    public static final long MILLS_TO_HOURS = 3600000;
 
     /**
      * Context which is responsible for this instance of the class
@@ -26,10 +26,6 @@ public class Chronometer implements Runnable {
      * If the class is running or not
      */
     boolean mIsRunning;
-    /**
-     * Used to convert Date object to string
-     */
-    SimpleDateFormat mSdf;
 
     /**
      * Constructor for the class for normal usage
@@ -37,10 +33,6 @@ public class Chronometer implements Runnable {
      */
     public Chronometer(Context context) {
         mContext = context;
-        //instantiating the date formatter
-        mSdf = new SimpleDateFormat("HH:mm:ss:SSS");
-        //set time to UTC so we start from 0!
-        mSdf.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
     /**
@@ -92,10 +84,14 @@ public class Chronometer implements Runnable {
         while(mIsRunning) {
             //Here we calculate the difference of starting time and current time
             long since = System.currentTimeMillis() - mStartTime;
-            //convert date to string
-            String sinceToString = mSdf.format(new Date(since));
-            //call the method from the activity to update the text of the TextView for timer
-            ((MainActivity)mContext).updateTimerText(sinceToString);
+
+            int seconds = (int) (since / 1000) % 60;
+            int minutes = (int) ((since / (MILLIS_TO_MINUTES)) % 60);
+            int hours = (int) ((since / (MILLS_TO_HOURS)) % 24);
+            int millis = (int) since % 1000; //the last 3 digits of millisecs
+
+            ((MainActivity) mContext).updateTimerText(String.format("%02d:%02d:%02d:%03d"
+                    , hours, minutes, seconds, millis));
 
             //Sleep the thread for a short amount, to prevent high CPU usage!
             try {

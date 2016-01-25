@@ -1,12 +1,12 @@
 package com.embedonix.chronometer;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.MotionEvent;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
@@ -31,9 +31,10 @@ public class MainActivity extends AppCompatActivity {
     public static final String LAP_COUNTER  = "LAP_COUNTER";
 
     //Member variables to access UI Elements
-    Button mBtnStart, mBtnLap, mBtnStop;
-    TextView mTvTimer;
-    EditText mEtLaps;
+    Button mBtnStart, mBtnLap, mBtnStop; //buttons
+    TextView mTvTimer; //timer textview
+    EditText mEtLaps; //laps text view
+    ScrollView mSvLaps; //scroll view which wraps the et_laps
 
     //keep track of how many times btn_lap was clicked
     int mLapCounter = 1;
@@ -63,6 +64,9 @@ public class MainActivity extends AppCompatActivity {
         mTvTimer = (TextView) findViewById(R.id.tv_timer);
         mEtLaps = (EditText) findViewById(R.id.et_laps);
         mEtLaps.setEnabled(false); //prevent the et_laps to be editable
+
+        mSvLaps = (ScrollView) findViewById(R.id.sv_lap);
+
 
         //btn_start click handler
         mBtnStart.setOnClickListener(new View.OnClickListener() {
@@ -116,6 +120,14 @@ public class MainActivity extends AppCompatActivity {
                 //we just simply copy the current text of tv_timer and append it to et_laps
                 mEtLaps.append("LAP " + String.valueOf(mLapCounter++)
                         + "   " + mTvTimer.getText() + "\n");
+
+                //scroll to the bottom of et_laps
+                mSvLaps.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mSvLaps.smoothScrollTo(0, mEtLaps.getBottom());
+                    }
+                });
             }
         });
 
