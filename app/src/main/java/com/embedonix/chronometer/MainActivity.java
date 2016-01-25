@@ -101,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
                     //stop the chronometer
                     mChrono.stop();
                     //stop the thread
+                    mThreadChrono.interrupt();
                     mThreadChrono = null;
                     //kill the chrono class
                     mChrono = null;

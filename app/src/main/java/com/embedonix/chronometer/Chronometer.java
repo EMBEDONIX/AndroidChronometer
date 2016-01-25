@@ -85,6 +85,7 @@ public class Chronometer implements Runnable {
             //Here we calculate the difference of starting time and current time
             long since = System.currentTimeMillis() - mStartTime;
 
+            //convert the resulted time difference into hours, minutes, seconds and milliseconds
             int seconds = (int) (since / 1000) % 60;
             int minutes = (int) ((since / (MILLIS_TO_MINUTES)) % 60);
             int hours = (int) ((since / (MILLS_TO_HOURS)) % 24);
@@ -95,7 +96,7 @@ public class Chronometer implements Runnable {
 
             //Sleep the thread for a short amount, to prevent high CPU usage!
             try {
-                Thread.sleep(10);
+                Thread.sleep(15);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
