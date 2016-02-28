@@ -1,15 +1,17 @@
 package com.embedonix.chronometer;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     /**
      * Key for getting saved start time of Chronometer class
@@ -24,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
      * Same story, but if chronometer was stopped, we dont want to lose the stop time shows in
      * the tv_timer
      */
-    public static final String TV_TIMER_TEXT = "TV_TIMER_TEXT";
+    public static final String ET_LAPST_TEXT = "ET_LAPST_TEXT";
     /**
      * Same story...keeps the value of the lap counter
      */
@@ -115,6 +117,8 @@ public class MainActivity extends AppCompatActivity {
 
                 //if chrono is not running we shouldn't capture the lap!
                 if(mChrono == null) {
+                    Toast.makeText(mContext
+                            , R.string.warning_lap_button, Toast.LENGTH_SHORT).show();
                     return; //do nothing!
                 }
 
@@ -131,32 +135,6 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
-
-        //if application was paused or killed or anything, we resume the last state!
-        if(savedInstanceState != null) {
-
-            //if chronometer was running
-            if(savedInstanceState.getBoolean(CHRONO_WAS_RUNNING)) {
-                //get the last start time from the bundle
-                long lastStartTime = savedInstanceState.getLong(START_TIME, 0);
-                //if the last start time is not 0
-                if(lastStartTime != 0) {
-                    mChrono = new Chronometer(mContext, lastStartTime);
-                    mThreadChrono = new Thread(mChrono);
-                    mThreadChrono.start();
-                    mChrono.start();
-
-                    //set the old value of lap counter
-                    mLapCounter = savedInstanceState.getInt(LAP_COUNTER, 1);
-                }
-            }  else { //if chrono was not running but it was stopped and tv_timer had a time!
-                String oldStoppedTimerText = savedInstanceState.getString(TV_TIMER_TEXT);
-                if(!oldStoppedTimerText.isEmpty()) { //if old timer was saved correctly
-                    mTvTimer.setText(oldStoppedTimerText);
-                }
-            }
-        }
-
     }
 
     /**
@@ -172,25 +150,107 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        loadInstance();
+
+        //stop background services and notifications
+        ((ChronometerApplication)getApplication()).stopBackgroundServices();
+        ((ChronometerApplication)getApplication()).cancelNotification();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        saveInstance();
+
+        if(mChrono != null && mChrono.isRunning()) {
+            //start background notification and timer
+            ((ChronometerApplication)getApplication())
+                    .startBackgroundServices(mChrono.getStartTime());
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+
+        saveInstance();
+
+        //When back button is pressed, app will be destoyed by OS. We do not want this to stop us
+        //from showing the notification if the chronometer is running!
+        if(mChrono == null || !mChrono.isRunning()) {
+            //stop background services and notifications
+            ((ChronometerApplication) getApplication()).stopBackgroundServices();
+            ((ChronometerApplication) getApplication()).cancelNotification();
+        }
+
+        super.onDestroy();
+    }
+
     /**
      * If the application goes to background or orientation change or any other possibility that
      * will pause the application, we save some instance values, to resume back from last state
-     * @param outState
      */
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    private void saveInstance() {
+        SharedPreferences pref = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
 
-        //if chronometer is running, we get its start time and save it in the bundle
+        //TODO move tags to a static class
         if(mChrono != null && mChrono.isRunning()) {
-            outState.putBoolean(CHRONO_WAS_RUNNING, mChrono.isRunning());
-            outState.putLong(START_TIME, mChrono.getStartTime());
-            outState.putInt(LAP_COUNTER, mLapCounter);
+            editor.putBoolean(CHRONO_WAS_RUNNING, mChrono.isRunning());
+            editor.putLong(START_TIME, mChrono.getStartTime());
+            editor.putInt(LAP_COUNTER, mLapCounter);
         } else {
-            outState.putBoolean(CHRONO_WAS_RUNNING, false);
-            outState.putLong(START_TIME, 0);
-            outState.putString(TV_TIMER_TEXT, mTvTimer.getText().toString());
+            editor.putBoolean(CHRONO_WAS_RUNNING, false);
+            editor.putLong(START_TIME, 0);
+            editor.putLong(START_TIME, 0); //0 means chronometer was not active! a redundant check!
+            editor.putInt(LAP_COUNTER, 1);
         }
 
-        super.onSaveInstanceState(outState);
+        //We save the lap text in any case. only a new click on start button should clear this text!
+        editor.putString(ET_LAPST_TEXT, mEtLaps.getText().toString());
+
+        editor.commit();
+    }
+
+    /**
+     * Load the shared preferences to resume last known state of the application
+     */
+    private void loadInstance() {
+
+        SharedPreferences pref = getPreferences(MODE_PRIVATE);
+
+        //if chronometer was running
+        if(pref.getBoolean(CHRONO_WAS_RUNNING, false)) {
+            //get the last start time from the bundle
+            long lastStartTime = pref.getLong(START_TIME, 0);
+            //if the last start time is not 0
+            if(lastStartTime != 0) { //because 0 means value was not saved correctly!
+
+                if(mChrono == null) { //make sure we dont create new instance and thread!
+
+                    if(mThreadChrono != null) { //if thread exists...first interrupt and nullify it!
+                        mThreadChrono.interrupt();
+                        mThreadChrono = null;
+                    }
+
+                    //start chronometer with old saved time
+                    mChrono = new Chronometer(mContext, lastStartTime);
+                    mThreadChrono = new Thread(mChrono);
+                    mThreadChrono.start();
+                    mChrono.start();
+                }
+            }
+        }
+
+        //we will load the lap text anyway in any case!
+        //set the old value of lap counter
+        mLapCounter = pref.getInt(LAP_COUNTER, 1);
+
+        String oldStoppedTimerText = pref.getString(ET_LAPST_TEXT, "");
+        if(!oldStoppedTimerText.isEmpty()) { //if old timer was saved correctly
+            mEtLaps.setText(oldStoppedTimerText);
+        }
     }
 }

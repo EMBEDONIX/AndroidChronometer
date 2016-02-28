@@ -79,16 +79,21 @@ public class Chronometer implements Runnable {
         return mStartTime;
     }
 
+
     @Override
     public void run() {
         while(mIsRunning) {
+            //We do not call ConvertTimeToString here because it will add some overhead
+            //therefore we do the calculation without any function calls!
+
             //Here we calculate the difference of starting time and current time
             long since = System.currentTimeMillis() - mStartTime;
 
             //convert the resulted time difference into hours, minutes, seconds and milliseconds
             int seconds = (int) (since / 1000) % 60;
             int minutes = (int) ((since / (MILLIS_TO_MINUTES)) % 60);
-            int hours = (int) ((since / (MILLS_TO_HOURS)) % 24);
+            //int hours = (int) ((since / (MILLS_TO_HOURS)) % 24); //this resets to  0 after 24 hour!
+            int hours = (int) ((since / (MILLS_TO_HOURS))); //this does not reset to 0!
             int millis = (int) since % 1000; //the last 3 digits of millisecs
 
             ((MainActivity) mContext).updateTimerText(String.format("%02d:%02d:%02d:%03d"
