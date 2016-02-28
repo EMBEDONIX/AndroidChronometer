@@ -26,6 +26,10 @@ public class MainActivity extends Activity {
      * Same story, but if chronometer was stopped, we dont want to lose the stop time shows in
      * the tv_timer
      */
+    public static final String TV_TIMER_TEXT = "TV_TIMER_TEXT";
+    /**
+     * Same story, we don't want to lose recorded laps
+     */
     public static final String ET_LAPST_TEXT = "ET_LAPST_TEXT";
     /**
      * Same story...keeps the value of the lap counter
@@ -203,13 +207,15 @@ public class MainActivity extends Activity {
             editor.putInt(LAP_COUNTER, mLapCounter);
         } else {
             editor.putBoolean(CHRONO_WAS_RUNNING, false);
-            editor.putLong(START_TIME, 0);
             editor.putLong(START_TIME, 0); //0 means chronometer was not active! a redundant check!
             editor.putInt(LAP_COUNTER, 1);
         }
 
         //We save the lap text in any case. only a new click on start button should clear this text!
         editor.putString(ET_LAPST_TEXT, mEtLaps.getText().toString());
+
+        //Same story for timer text
+        editor.putString(TV_TIMER_TEXT, mTvTimer.getText().toString());
 
         editor.commit();
     }
@@ -248,9 +254,14 @@ public class MainActivity extends Activity {
         //set the old value of lap counter
         mLapCounter = pref.getInt(LAP_COUNTER, 1);
 
-        String oldStoppedTimerText = pref.getString(ET_LAPST_TEXT, "");
-        if(!oldStoppedTimerText.isEmpty()) { //if old timer was saved correctly
-            mEtLaps.setText(oldStoppedTimerText);
+        String oldEtLapsText = pref.getString(ET_LAPST_TEXT, "");
+        if(!oldEtLapsText.isEmpty()) { //if old timer was saved correctly
+            mEtLaps.setText(oldEtLapsText);
+        }
+
+        String oldTvTimerText = pref.getString(TV_TIMER_TEXT, "");
+        if(!oldTvTimerText.isEmpty()){
+            mTvTimer.setText(oldTvTimerText);
         }
     }
 }
